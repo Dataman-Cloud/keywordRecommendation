@@ -26,7 +26,7 @@ import scopt.OptionParser
 import org.apache.log4j.{Level, Logger}
 
 import org.apache.spark.{SparkContext, SparkConf}
-import org.apache.spark.mllib.clustering.{EMLDAOptimizer, OnlineLDAOptimizer, DistributedLDAModel, LDA}
+import org.apache.spark.mllib.clustering._
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
 import org.apache.spark.rdd.RDD
 
@@ -132,7 +132,7 @@ object LDAExample {
     println()
 
     // Run LDA.
-    val lda = new LDA()
+    val lda = new DMLDA()
 
     val optimizer = params.algorithm.toLowerCase match {
       case "em" => new EMLDAOptimizer
@@ -152,7 +152,7 @@ object LDAExample {
       sc.setCheckpointDir(params.checkpointDir.get)
     }
     val startTime = System.nanoTime()
-    val ldaModel = lda.run(corpus)
+    val ldaModel = lda.run(corpus, sc)
     val elapsed = (System.nanoTime() - startTime) / 1e9
 
     println(s"Finished training LDA model.  Summary:")
@@ -232,7 +232,7 @@ object LDAExample {
       (tmpSortedWC.map(_._1).zipWithIndex.toMap, tmpSortedWC.map(_._2).sum)  //（（单词，index），取出的单词总数）
     }
 
-    sc.parallelize(vocab.toArray.toList).saveAsTextFile("hdfs://10.3.12.9:9000/users/root/lda/vocab")
+    //sc.parallelize(vocab.toArray.toList).saveAsTextFile("hdfs://10.3.12.9:9000/users/root/lda/vocab")
 
     val documents = tokenized.map { case (id, tokens) =>
       // Filter tokens by vocabulary, and create word count vector representation of document.
