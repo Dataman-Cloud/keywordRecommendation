@@ -1,5 +1,4 @@
 package com.dataman.nlp
-
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.SparkContext._
@@ -14,9 +13,13 @@ import edu.stanford.nlp.ling.CoreLabel
 import org.jsoup.Jsoup
 import java.sql.{Connection, DriverManager, ResultSet}
 import org.apache.hadoop.hdfs.DistributedFileSystem
+/**
+ * Created by ener on 8/27/15.
+ */
 
 
-object SegmentJob {
+object SegmentJob_1 {
+
   def main(args: Array[String]) = {
 
     val input = "hdfs://10.3.12.9:9000/test/"
@@ -36,13 +39,13 @@ object SegmentJob {
       "select content from article_20  limit ?,?",
       1,30000,10, r => r.getString("content"))
     */
-
     sqlContext.read.format("jdbc").options(
       Map(
         "url" -> "jdbc:mysql://10.3.12.10:3306/ldadb?user=ldadev&password=ldadev1234",
-      "dbtable" -> "train_data",
-      "driver"->"com.mysql.jdbc.Driver"
-    )).load().repartition(10).select("content").filter("content is not null")
+        "dbtable" -> "article_20",
+        "driver"->"com.mysql.jdbc.Driver"
+      )).load()
+      .repartition(10).select("articleid","content").filter("content is not null")
       .mapPartitions(iter => {
       println("begin stanford")
       val props = new Properties
@@ -58,14 +61,13 @@ object SegmentJob {
       inputStream.close
       is.close
       iter.map( record => {
-          if (record.length > 0 && record(0) != null) {
-          val text = Jsoup.parse(record(0).toString).text()
+        (record(0) ,
+        if (record.length > 0 && record(1) != null)
+        {
+          val text = Jsoup.parse(record(1).toString).text()
           segmenter.segmentString(text).toArray.mkString(" ").replaceAll(s"\\r\\n","").replaceAll("\\pP|\\pS","").replaceAll("[a-zA-Z]","").replaceAll(" +"," ")
-        } else ""
-      })
+        } else "" )
+      }).map(y=>y._1+","+y._2)
     }).saveAsTextFile(args(0))
-
   }
 }
-
-

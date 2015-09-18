@@ -1,59 +1,40 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-package com.dataman.nlp
-
-import java.text.BreakIterator
-import scala.collection.mutable
-import scopt.OptionParser
-import org.apache.log4j.{Level, Logger}
-import org.apache.spark.{SparkContext, SparkConf}
-import  org.apache.spark.graphx.Graph
-import org.apache.spark.mllib.clustering.{EMLDAOptimizer, OnlineLDAOptimizer, DistributedLDAModel, LDA}
-import org.apache.spark.mllib.linalg.{Vector, Vectors}
-import org.apache.spark.rdd.RDD
-import java.sql.DriverManager
-
 
 
 /**
- * An example Latent Dirichlet Allocation (LDA) app. Run with
- * {{{
- * ./bin/run-example mllib.LDAExample [options] <input>
- * }}}
- * If you use it as a template to create your own app, please use `spark-submit` to submit your app.
+ * Created by ener on 8/27/15.
  */
-object LDAExample {
+package com.dataman.nlp
 
+import java.text.BreakIterator
+
+import scala.collection.mutable
+
+import scala.collection.mutable.HashMap
+
+import scopt.OptionParser
+
+import org.apache.log4j.{Level, Logger}
+import breeze.linalg.{DenseMatrix => BDM, max, argmax}
+import org.apache.spark.{SparkContext, SparkConf}
+import org.apache.spark.mllib.clustering.{EMLDAOptimizer, OnlineLDAOptimizer, DistributedLDAModel, LDA,LDAModel,LocalLDAModel}
+import org.apache.spark.mllib.linalg.{Vector, Vectors}
+import org.apache.spark.rdd.RDD
+
+object LDAExample1 {
   private case class Params(
-      input: Seq[String] = Seq.empty,
-      k: Int = 20,
-      maxIterations: Int = 10,
-      docConcentration: Double = -1,
-      topicConcentration: Double = -1,
-      vocabSize: Int = 10000,
-      stopwordFile: String = "",
-      algorithm: String = "em",
-      checkpointDir: Option[String] = None,
-      checkpointInterval: Int = 10) extends AbstractParams[Params]
+                             input: Seq[String] = Seq.empty,
+                             k: Int = 20,
+                             maxIterations: Int = 10,
+                             docConcentration: Double = -1,
+                             topicConcentration: Double = -1,
+                             vocabSize: Int = 10000,
+                             stopwordFile: String = "",
+                             algorithm: String = "em",
+                             checkpointDir: Option[String] = None,
+                             checkpointInterval: Int = 10) extends AbstractParams[Params]
 
   def main(args: Array[String]) {
     val defaultParams = Params()
-
     val parser = new OptionParser[Params]("LDAExample") {
       head("LDAExample: an example LDA app for plain text data.")
       opt[Int]("k")
@@ -72,11 +53,12 @@ object LDAExample {
         .action((x, c) => c.copy(topicConcentration = x))
       opt[Int]("vocabSize")
         .text(s"number of distinct word types to use, chosen by frequency. (-1=all)" +
-          s"  default: ${defaultParams.vocabSize}")
+        s"  default: ${defaultParams.vocabSize}")
         .action((x, c) => c.copy(vocabSize = x))
       opt[String]("stopwordFile")
         .text(s"filepath for a list of stopwords. Note: This must fit on a single machine." +
         s"  default: ${defaultParams.stopwordFile}")
+        .required()
         .action((x, c) => c.copy(stopwordFile = x))
       opt[String]("algorithm")
         .text(s"inference algorithm to use. em and online are supported." +
@@ -101,14 +83,16 @@ object LDAExample {
 
     parser.parse(args, defaultParams).map { params =>
       run(params)
-    }.getOrElse {
+    }.getOrElse{
       parser.showUsageAsError
       sys.exit(1)
     }
   }
 
   private def run(params: Params) {
-    val conf = new SparkConf().setAppName(s"LDAExample with $params")
+
+    println(s"LDAExample with $params")
+    val conf = new SparkConf().setAppName("LDAExample")
     val sc = new SparkContext(conf)
 
 
@@ -129,17 +113,40 @@ object LDAExample {
     println(s"\t Preprocessing time: $preprocessElapsed sec")
     println()
 
-
     // Run LDA.
-    val lda = new DMLDA()
+    val lda = new LDA()
 
-    //val distrilda:DistributedLDAModel = new DistributedLDAModel()
+    var _docConcentration = 0.0
+    var _topicConcentration = 0.0
 
     val optimizer = params.algorithm.toLowerCase match {
-      case "em" => new EMLDAOptimizer
-      // add (1.0 / actualCorpusSize) to MiniBatchFraction be more robust on tiny datasets.
-      case "online" => new OnlineLDAOptimizer().setMiniBatchFraction(0.05 + 1.0 / actualCorpusSize)
-      //case "online" => new OnlineLDAOptimizer().setMiniBatchFraction(0.05)
+      case "em" => {
+        if(params.docConcentration>1)
+          _docConcentration = params.docConcentration
+        else
+          _docConcentration = 50/params.k
+
+        if(params.topicConcentration>1)
+          _topicConcentration = params.topicConcentration
+        else
+          _topicConcentration = 0.1+1
+
+
+        new EMLDAOptimizer();
+      }
+      case "online" => {
+        if(params.docConcentration>=0)
+          _docConcentration = params.docConcentration
+        else
+          _docConcentration = 1.0/params.k
+
+        if(params.topicConcentration>=0)
+          _topicConcentration = params.topicConcentration
+        else
+          _topicConcentration = 1.0/params.k
+
+        new OnlineLDAOptimizer().setMiniBatchFraction(0.05 + 1.0 / actualCorpusSize)
+      }
       case _ => throw new IllegalArgumentException(
         s"Only em, online are supported but got ${params.algorithm}.")
     }
@@ -147,59 +154,99 @@ object LDAExample {
     lda.setOptimizer(optimizer)
       .setK(params.k)
       .setMaxIterations(params.maxIterations)
-      .setDocConcentration(params.docConcentration)
-      .setTopicConcentration(params.topicConcentration)
+      .setDocConcentration(_docConcentration)
+      .setTopicConcentration(_topicConcentration)
       .setCheckpointInterval(params.checkpointInterval)
     if (params.checkpointDir.nonEmpty) {
       sc.setCheckpointDir(params.checkpointDir.get)
     }
     val startTime = System.nanoTime()
-    val ldaModel = lda.run(corpus, sc)
+    val ldaModel = lda.run(corpus)
     val elapsed = (System.nanoTime() - startTime) / 1e9
 
     println(s"Finished training LDA model.  Summary:")
-    println(s"\t Training time: $elapsed sec")
+    println(s"\t >>>>>>>>>>>>>>>>>>>>>>>>>>Training time: $elapsed sec")
 
-    if (ldaModel.isInstanceOf[DistributedLDAModel]) {
-      val distLDAModel = ldaModel.asInstanceOf[DistributedLDAModel]
-      val avgLogLikelihood = distLDAModel.logLikelihood / actualCorpusSize.toDouble
+
+
+    if (ldaModel.isInstanceOf[DistributedLDAModel]) { //ONLY EM return DistributedLDAModel
+    val distLDAMode = ldaModel.asInstanceOf[DistributedLDAModel]
+      println(s">>>>>>>>>>>>>>>>>>>>>>>>this is a DistributedLDAModel")
+      val avgLogLikelihood = distLDAMode.logLikelihood / actualCorpusSize.toDouble
       println(s"\t Training data average log likelihood: $avgLogLikelihood")
       println()
-      /*
-      val documentIndices=distLDAModel.topicDistributions
-      println("save rdd")
-      documentIndices.saveAsTextFile("hdfs://10.3.12.9:9000/test/docToTopic.txt")
-      println("end")
-      println("documentIndices:",documentIndices.count() )
-      documentIndices.map(x=>x._2.toArray).foreach(print)
-      println("documentIndices end")
-      documentIndices.foreach{case (idNum ,topicDis) =>
-        print(s"DocumentID :$idNum")
-        topicDis.toArray.foreach(print)
-      }
-      */
-      println("Add code sucess!")
     }
 
+    // Print the topics, showing the top-weighted terms for each topic.
+
+    //var result = printTopics(ldaModel,vocabArray)
+    //sc.parallelize(List(result), 1).saveAsTextFile("hdfs://10.3.12.9:9000/test/bbc/outset")//存储结果
+
+    //////////////////////
+    //    lda.setOptimizer(new OnlineLDAOptimizer().setMiniBatchFraction(0.05 + 1.0 / actualCorpusSize))
+    //    lda.setMaxIterations(10).setK(5)
+    val (corpus2, vocabArray2, actualNumTokens2) = preprocess(sc, List("hdfs://10.3.12.9:9000/test/bbc/dataone"), params.vocabSize, params.stopwordFile)
+
+    val localLDAMode = ldaModel.asInstanceOf[LocalLDAModel]  //TODO only right when online
+    localLDAMode.save(sc,"hdfs://10.3.12.9:9000/test/ModelMatrix/Matrix10")
+    //LocalLDAModel.load(sc, path)
+    //ldaModel.save(sc, path)
+
+    val actualPredictions = localLDAMode.topicDistributions(corpus2)
+
+    actualPredictions.saveAsTextFile("hdfs://10.3.12.9:9000/test/bbc/result10")
+
+    var result2 = printTopics(localLDAMode,vocabArray)
+    sc.parallelize(List(result2), 1).saveAsTextFile("hdfs://10.3.12.9:9000/test/bbc/oneset10")//存储结果
+
+    val arr = actualPredictions.take(1)
+
+    println(">>>>a: " + arr);
+
+    val vc = arr(0)._2
+
+    println(">>>>b: " + vc);
+
+    val weightPerTopic = vc.toArray
+
+    println(">>>>c: " + weightPerTopic);
+
+    val m:HashMap[Int,Double] = HashMap()
+    for(i<-0 to (weightPerTopic.length-1)){
+      m += (i -> weightPerTopic(i))
+    }
+
+    val lst = m.toList.sortBy(_._2)
+
+    lst.foreach{
+      case(k,v)=>
+        println(k + " = " + v)
+
+    }
+    val t = sc.parallelize(lst,1)
+    //t.saveAsTextFile("hdfs://10.3.12.9:9000/test/bbc/result2")
 
 
+    sc.stop()
+  }
+
+
+  private def printTopics(ldaModel: LDAModel,vocabArray: Array[String]):String={
     // Print the topics, showing the top-weighted terms for each topic.
     val topicIndices = ldaModel.describeTopics(maxTermsPerTopic = 10)
 
-    println("Test print topicIndices")
-    topicIndices.foreach(print)
-    println("Test end")
     val topics = topicIndices.map { case (terms, termWeights) =>
+      terms.zip(termWeights).map {
+        case (term, weight) => {
+          if(term.toInt>=vocabArray.length){
+            ("!!!", weight)
+          }else{
+            (vocabArray(term.toInt), weight)
+          }
 
-      terms.zip(termWeights).map { case (term, weight)  => (vocabArray(term.toInt), weight) }
+        }
+      }
     }
-
-    //add document relate to topic
-
-
-    //
-    println(s"${params.k} topics:")
-
     var result = ""
 
     topics.zipWithIndex.foreach { case (topic, i) =>
@@ -207,13 +254,13 @@ object LDAExample {
       result += s"TOPIC $i\n"
       topic.foreach { case (term, weight) =>
         println(s"$term\t$weight")
-          result += s"$term\t$weight\n"
+        result += s"$term\t$weight\n"
       }
       println()
     }
 
-    sc.parallelize(List(result), 1).saveAsTextFile("hdfs://10.3.12.9:9000/test/out1.txt")
-    sc.stop()
+    result
+
   }
 
   /**
@@ -221,23 +268,26 @@ object LDAExample {
    * @return (corpus, vocabulary as array, total token count in corpus)
    */
   private def preprocess(
-      sc: SparkContext,
-      paths: Seq[String],
-      vocabSize: Int,
-      stopwordFile: String): (RDD[(Long, Vector)], Array[String], Long) = {
+                          sc: SparkContext,
+                          paths: Seq[String],
+                          vocabSize: Int,
+                          stopwordFile: String): (RDD[(Long, Vector)], Array[String], Long) = {
 
     // Get dataset of document texts
     // One document per line in each text file. If the input consists of many small files,
     // this can result in a large number of small partitions, which can degrade performance.
     // In this case, consider using coalesce() to create fewer, larger partitions.
+    println(s">>>>>>>>>>>$paths.mkString(",")")
+
     val textRDD: RDD[String] = sc.textFile(paths.mkString(","))
 
-    val stopwords: Set[String] = sc.textFile(stopwordFile).map(_.trim).filter(_.size > 0).distinct.collect.toSet
+    val stopwords: Set[String] = sc.textFile(stopwordFile).map(_.trim).filter(_.size > 0).distinct.collect.toSet//TODO WHAT IS STOPWORD
+
     val broadcastsw = sc.broadcast(stopwords)
 
     // Split text into words
     val tokenized: RDD[(Long, IndexedSeq[String])] = textRDD.zipWithIndex().map { case (text, id) =>
-      id -> text.split(" ").map(_.trim).filter(x => x.size > 1 && !broadcastsw.value.contains(x))
+      id -> text.split(" ").map(_.trim).filter(x => x.getBytes("utf-8").length > 4 && !broadcastsw.value.contains(x)) //TODO x.size > 2 过滤掉标点符号 换行符
     }                                                     //分词，并为每篇文章生成ID
     tokenized.cache()                                     //缓存，用于迭代
 
@@ -281,4 +331,5 @@ object LDAExample {
 
     (documents, vocabArray, selectedTokenCount)                            //单词个数之和
   }
+
 }
