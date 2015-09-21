@@ -12,6 +12,8 @@ public class OutputMsg {
 	
 	private String related_arts;
 	
+	private String topic_hot;
+	
 	private String detail; //记录错误信息exp.
 	
 	public String getDetail() {
@@ -53,4 +55,13 @@ public class OutputMsg {
 	public void setRelated_arts(String related_arts) {
 		this.related_arts = related_arts;
 	}
+	
+	public String getTopic_hot() {
+	    return topic_hot;
+	}
+	
+	public void setTopic_hot(String topic_hot) {
+	    this.topic_hot = topic_hot;
+	}
 }
+

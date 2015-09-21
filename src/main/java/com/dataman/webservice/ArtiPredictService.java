@@ -21,10 +21,12 @@ import com.dataman.webservice.io.ArticlID;
 import com.dataman.webservice.io.InputMsg;
 import com.dataman.webservice.io.MsgDAO;
 import com.dataman.webservice.io.OutputMsg;
+import com.dataman.webservice.io.DateSpan;
 import com.dataman.webservice.util.Base64Util;
 
 import org.apache.spark.deploy.SparkSubmit;
 import com.dataman.nlp.predictArticle;
+import com.dataman.nlp.TopicHot;
 // @Path here defines class level path. Identifies the URI path that 
 // a resource class will serve requests for.
 @Path("artipredict")
@@ -129,5 +131,30 @@ public class ArtiPredictService {
 			e.printStackTrace();
 		}
 		return Base64Util.encodeUTF8String(JsonHelper.toJSON(oum).toString());
+ }
+
+ @POST 
+ @Path("hot") 
+ @Produces(MediaType.TEXT_PLAIN)
+ public String topicHot(@FormParam("msg") String jsonMsgInUTF8WithBase64) {
+        
+        // decode
+        String jsonMsg = Base64Util
+                .decodeBase64withUTF8(jsonMsgInUTF8WithBase64);
+        
+        // JSON TO BEAN
+        DateSpan msg = new DateSpan();
+        try {
+            JsonHelper.toJavaBean(msg, jsonMsg);
+        } catch (JSONException | ParseException e) {
+            System.err.println(jsonMsg);
+            e.printStackTrace();
+        }
+
+        String re = TopicHot.getArticle(Analyzer.sc, Analyzer.sqlContext, msg.getAppid());
+        OutputMsg oum = new OutputMsg();
+        oum.setAppid(msg.getAppid());
+        oum.setTopic_hot(re);
+        return Base64Util.encodeUTF8String(JsonHelper.toJSON(oum).toString());
  }
 }
