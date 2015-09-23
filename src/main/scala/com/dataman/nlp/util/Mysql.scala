@@ -89,6 +89,21 @@ object Mysql {
 
   }
 
+  def saveToSQL10(result: RDD[(String,Int)]): RDD[String] = {
+    val table = "ldadb.topics10"
+    val value = result.map(x => {
+      s"INSERT INTO $table (id, terms) VALUES " + "(" + x._2 + ",'" + x._1+ "')"
+    })
+    value
+  }
+
+  def sqlTo_topics_10word(result: RDD[(String,Int)]): RDD[String]={
+    val table ="topics_10word"
+    val value = result.map(x => {
+      s"INSERT INTO $table (id, terms) VALUES " + "(" + x._2 + ",'" + x._1 + "')"
+    })
+    value
+  }
 
   def sqlToArt_distri_on_topic(result: RDD[(Int,Int,String)]): RDD[String]={
     val table = "ldadb.art_distri_on_topic"

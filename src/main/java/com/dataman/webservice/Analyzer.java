@@ -20,6 +20,6 @@ public class Analyzer {
         Analyzer.analyzer = StanfordSegment.wordSegment("http://10.3.12.2:8666/analyzer");
         Analyzer.sc = new SparkContext();
         Analyzer.sqlContext = new SQLContext(sc);
-        Analyzer.model = LocalLDAModel.load(Analyzer.sc, "hdfs://10.3.12.9:9000/model/one");
+        Analyzer.model = LocalLDAModel.load(Analyzer.sc, "hdfs://10.3.12.9:9000/model/two");
     }
 }

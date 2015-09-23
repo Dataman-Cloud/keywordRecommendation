@@ -14,7 +14,7 @@ object PridectHistory {
 
     val conf = new SparkConf()
     val sc = new SparkContext(conf)
-    val lda = LocalLDAModel.load(sc, "hdfs://10.3.12.9:9000/model/one")
+    val lda = LocalLDAModel.load(sc, "hdfs://10.3.12.9:9000/model/two")
     /*
     val input = lda.describeTopics(10).map(x => x._2).map(y => y.toVector)
     val index1 = input.zipWithIndex.map(x => {
@@ -45,7 +45,7 @@ object PridectHistory {
     val docVec = ToVector.wordToVector1(sc, list, 100000, "hdfs://10.3.12.9:9000/test/stopword.dic")
     //docVec.saveAsTextFile("hdfs://10.3.12.9:9000/test/PrWord/Word9")
     val preDeV = lda.topicDistributions(docVec)
-    preDeV.repartition(1).saveAsTextFile("hdfs://10.3.12.9:9000/test/PrWord/Word1")
+    preDeV.repartition(1).saveAsTextFile("hdfs://10.3.12.9:9000/test/PrWord/Word2")
       /*
       .map(x => x._2.toArray)
       .map(y => {

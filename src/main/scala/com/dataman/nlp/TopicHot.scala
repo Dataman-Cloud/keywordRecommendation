@@ -8,7 +8,7 @@ import org.apache.spark.sql.SQLContext
  */
 object TopicHot {
   def getArticle(sc: SparkContext, sqlContext: SQLContext, appId: Int):String = {
-    val artRdd = sc.textFile("hdfs://10.3.12.9:9000/test/PrWord/Word1/")
+    val artRdd = sc.textFile("hdfs://10.3.12.9:9000/test/PrWord/Word2/")
     val inputRdd = artRdd.map(x=>{x.replaceAll(s"\\]|\\)","").split("\\[")
     }).map(y => {
       val vec = (y(1).split(",").map(_.toDouble)).toVector
@@ -27,7 +27,7 @@ object TopicHot {
     val sqlword = sqlContext.read.format("jdbc").options(
       Map(
         "url" -> "jdbc:mysql://10.3.12.10:3306/ldadb?user=ldadev&password=ldadev1234",
-        "dbtable" -> "topics_5word",
+        "dbtable" -> "topics_10word",
         "driver"->"com.mysql.jdbc.Driver"
       )).load().repartition(10)
     sqlword.registerTempTable("word")
