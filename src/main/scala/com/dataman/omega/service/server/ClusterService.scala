@@ -68,8 +68,8 @@ trait ClusterService extends WebService {
                                                Analyzer.analyzer)
 
 
-            val oum = new OutputMsg(msgbean.articleid, msgbean.appid, Some(keywords), Some(articles), null, null)
-
+            val oum = OutputMsg(msgbean.articleid, msgbean.appid, Some(keywords), Some(articles), Option(null), Option(null))
+println(oum.toJson.toString())
             complete(oum.toJson.toString())
           }
         }
