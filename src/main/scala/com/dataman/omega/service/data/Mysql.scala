@@ -8,7 +8,7 @@ object Mysql {
 
     case class Message(articleid: Int, title: String, subcontent: String, content: String, appid: Int, keywords: String)
 
-    class MessageTable(tag: Tag) extends Table[Message](tag, "message") {
+    class MessageTable(tag: Tag) extends Table[Message](tag, "art4test") {
       def articleid = column[Int]("articleid", O.PrimaryKey)
       def title = column[String]("title")
       def subcontent = column[String]("subcontent")
