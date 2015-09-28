@@ -11,7 +11,8 @@
 http参数：msg
 
 输入字段：（BASE64编码）(注意数字与字符串类型的区别)
-`{
+```json
+{
 	"articleid":200013431,
 	
 	"title":"xxx",
@@ -24,7 +25,9 @@ http参数：msg
 	
 	"keywords":null
 
-}`
+}```
+
+
 
 返回结果：(BASE64编码)
 	''{
