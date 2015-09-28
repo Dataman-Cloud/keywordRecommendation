@@ -14,32 +14,24 @@ import spray.routing.Route._
 import spray.httpx.SprayJsonSupport._
 import scala.collection.JavaConversions._
 
-import com.dataman.omega.service.actor.PostgresActor
+import com.dataman.omega.service.actor.PredictActor
+import com.dataman.omega.service.actor.PredictActor._
 import com.dataman.omega.service.server.HTTPHelpers._
 
 trait ClusterService extends WebService {
 
-  import PostgresActor._
-  import com.dataman.omega.service.data.TestJsonProtocol.testJsonFormat
 
-  val TOKEN = "authorization"
+  val work = actorRefFactory.actorOf(Props[PredictActor], "worker")
 
-  val postgresWorker = actorRefFactory.actorOf(Props[PostgresActor], "postgres-worker")
-
-  def postgresCall(message: Any) =
-    (postgresWorker ? message).mapTo[String]
-
-  val defaultResponseHeaders = RawHeader("Access-Control-Allow-Origin", "*") ::
-    RawHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS") ::
-    RawHeader("Access-Control-Allow-Headers", "Content-Type, Depth, User-Agent, X-File-Size, X-Requested-With, X-Requested-By, If-Modified-Since, X-File-Name, Cache-Control, X-XSRFToken, Authorization") :: Nil
+  def workCall(message: Any) =
+    (work ? message).mapTo[String]
 
   val clusterServiceRoutes = {
     pathPrefix("predArt") {
       post {
         formField('msg.as[String]) {
           msg => {
-            val oum = PredictArticle.service(msg)
-            complete(oum)
+            complete(workCall(PredictArticleMsg(msg)))
           }
         }
       }
