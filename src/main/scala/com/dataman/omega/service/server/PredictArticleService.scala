@@ -13,7 +13,7 @@ import scala.collection.JavaConversions._
 /**
  * Created by mymac on 15/9/27.
  */
-object PredictArticle {
+object PredictArticleService {
   def service(msg: String) = {
       val jsonMsg = Base64Util.decodeBase64withUTF8(msg)
       implicit val inputJsonFormat = jsonFormat6(InputMsg)

@@ -26,14 +26,19 @@ case class OutputMsg (
 )
 
 case class DataSpan (
-  val startDate: Date,
-  val stopDate: Date,
-  val appid: Int
+  startDate: Option[String],
+  stopDate: Option[String],
+  appid: Int
 )
 
 case class ArticleID (
   articleid: Int,
   appid: Int
+)
+
+case class HotTopic (
+  appid: Int,
+  topics: Option[String]
 )
 
 object Msgs extends App {

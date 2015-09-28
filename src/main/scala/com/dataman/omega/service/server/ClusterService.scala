@@ -35,6 +35,22 @@ trait ClusterService extends WebService {
           }
         }
       }
+    } ~ pathPrefix("upload") {
+      post {
+        formField('msg.as[String]) {
+          msg => {
+            complete(UploadArticleService.service(msg))
+          }
+        }
+      }
+    } ~ pathPrefix("hot") {
+      post {
+        formField('msg.as[String]) {
+          msg => {
+            complete(TopicHotService.service(msg))
+          }
+        }
+      }
     }
   }
 }
