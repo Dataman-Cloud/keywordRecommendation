@@ -8,7 +8,7 @@ with ClusterService
 {
   def actorRefFactory = context
   def receive = runRoute(
-    pathPrefix("api" / "v1") {
+    pathPrefix("rest" / "artipredict") {
       clusterServiceRoutes
     }
   )

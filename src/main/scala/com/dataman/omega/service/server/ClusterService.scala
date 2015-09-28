@@ -27,7 +27,7 @@ trait ClusterService extends WebService {
     (work ? message).mapTo[String]
 
   val clusterServiceRoutes = {
-    pathPrefix("predArt") {
+    pathPrefix("pred") {
       post {
         formField('msg.as[String]) {
           msg => {
