@@ -1,6 +1,6 @@
 package com.dataman.omega.service.server
 
-import com.dataman.omega.service.data.{OutputMsg, InputMsg, ArticleID, DataSpan, HotTopic}
+import com.dataman.omega.service.data.{OutputMsg, InputMsg, ArticleID, DateSpan, HotTopic}
 import com.dataman.webservice.{Analyzer, Base64Util}
 import com.dataman.nlp.TopicHot
 import spray.json.DefaultJsonProtocol
@@ -16,9 +16,9 @@ import scala.collection.JavaConversions._
 object TopicHotService {
   def service(msg: String) = {
     val jsonMsg = Base64Util.decodeBase64withUTF8(msg)
-    implicit val inputJsonFormat = jsonFormat3(DataSpan)
+    implicit val inputJsonFormat = jsonFormat3(DateSpan)
     implicit val outputJsonFormat = jsonFormat2(HotTopic)
-    val msgbean = jsonMsg.parseJson.convertTo[DataSpan]
+    val msgbean = jsonMsg.parseJson.convertTo[DateSpan]
     val re = TopicHot.getArticle(Analyzer.sc,
                                  Analyzer.sqlContext,
                                  msgbean.appid)

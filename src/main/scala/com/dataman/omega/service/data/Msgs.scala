@@ -25,7 +25,7 @@ case class OutputMsg (
   detail: Option[String]
 )
 
-case class DataSpan (
+case class DateSpan (
   startDate: Option[String],
   stopDate: Option[String],
   appid: Int
