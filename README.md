@@ -4,6 +4,7 @@
 - 文章主题预测接口
 - 文章上传接口
 - 主题热度查询接口
+
 ## 1.文章主题预测接口
 地址：`http://123.59.47.76:2015/rest/artipredict/pred`
 http参数：msg
@@ -23,6 +24,7 @@ http参数：msg
 	''	"related_arts": "200022448,200022850,200021064,200020649,200012421",
 	''	"appid": 20
 	''}
+
 ## 2.文章上传接口
 地址：`http://123.59.47.76:2015/rest/artipredict/upload`
 http 参数:msg
@@ -41,6 +43,7 @@ http 参数:msg
 	''	"appid":20,
 	''	“detail”:”1”  ##交互详情，正常情况下返回“1”
 	''}
+
 ## 3.主题热度查询接口
 地址：`http://123.59.47.76:2015/rest/artipredict/hot`
 http参数： msg
