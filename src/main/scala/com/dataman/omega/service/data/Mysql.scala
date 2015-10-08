@@ -21,7 +21,7 @@ object Mysql {
 
     def createTable() = {
       def db = Database.forURL(
-        url = "jdbc:mysql://10.3.12.10:3306/ldadb?user=ldadev&password=ldadev1234",
+        url = "jdbc:mysql://10.3.12.10:3306/ldadb?user=ldadev&password=ldadev1234&useUnicode=true&characterEncoding=utf8",
         driver = "com.mysql.jdbc.Driver"
       )
       implicit val session = db.createSession()
@@ -31,7 +31,7 @@ object Mysql {
 
     def insertMessage(msg: InputMsg) = {
       def db = Database.forURL(
-        url = "jdbc:mysql://10.3.12.10:3306/ldadb?user=ldadev&password=ldadev1234",
+        url = "jdbc:mysql://10.3.12.10:3306/ldadb?user=ldadev&password=ldadev1234&useUnicode=true&characterEncoding=utf8",
         driver = "com.mysql.jdbc.Driver"
       )
       implicit val session = db.createSession()
@@ -47,3 +47,4 @@ object Mysql {
     }
 
 }
+

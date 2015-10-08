@@ -9,6 +9,7 @@ import DefaultJsonProtocol._
 import spray.routing.Route._
 import spray.httpx.SprayJsonSupport._
 import scala.collection.JavaConversions._
+import slick.driver.MySQLDriver.simple._
 
 /**
  * Created by mymac on 15/9/27.
@@ -27,9 +28,12 @@ object PredictArticleService {
         msgbean.appid,
         msgbean.content.get,
         Analyzer.analyzer)
+
+
       val oum = OutputMsg(msgbean.articleid, msgbean.appid, Some(keywords), Some(articles), Option(null), Option(null))
 
       Base64Util.encodeUTF8String(oum.toJson.toString())
   }
 }
+
 

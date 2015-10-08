@@ -3,6 +3,7 @@ package com.dataman.nlp
 import com.dataman.nlp.knn.knnJoin
 import com.dataman.nlp.util.{Mysql, StanfordSegment}
 import com.dataman.nlp.knn.knnJoin
+import com.dataman.omega.service.server.IgnoreService
 import org.apache.spark.mllib.clustering.LocalLDAModel
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkContext, SparkConf}
@@ -12,6 +13,7 @@ import scala.collection.JavaConversions._
 import scala.compat.Platform
 import edu.stanford.nlp.ie.crf.CRFClassifier
 import edu.stanford.nlp.ling.CoreLabel
+import slick.driver.MySQLDriver.simple._
 
 /**
  * Created by ener on 8/31/15.
@@ -83,8 +85,12 @@ value1.foreach(println)
         (y.substring(0, y.lastIndexOf(",")) -> (y.substring(y.lastIndexOf(",")+1, y.size ).toDouble*topicScore))
       })
       termScore
-    }}.sortBy(_._2, ascending = false).take(10).mkString(",")
-    println("word: " + word)
+    }}.sortBy(_._2, ascending = false).take(200)//.mkString(",")
+    // blacklist filter
+    val blackList = IgnoreService.selectTerms(appId)
+    val filterWord = word.filterNot{case (w, c) => blackList.contains(w)}.take(10).mkString(",")
+
+    println("word: " + filterWord)
     println("get one doc topic")
 println("begin knn:")
 println(Platform.currentTime)
@@ -97,7 +103,7 @@ println(Platform.currentTime)
     sqlContext.clearCache()
 //    retuLis
 
-    (artid, word)
+    (artid, filterWord)
   }
 
   def main(args: Array[String])= {
@@ -118,3 +124,4 @@ println(Platform.currentTime)
 
   }
 }
+

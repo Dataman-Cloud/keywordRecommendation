@@ -41,6 +41,16 @@ case class HotTopic (
   topics: Option[String]
 )
 
+case class IgnoreList (
+  appid: Int,
+  terms: Option[String]
+)
+
+case class IgnoreAck (
+  appid: Int,
+  detail: Option[String]
+)
+
 object Msgs extends App {
   implicit val aJsonFormat = jsonFormat6(InputMsg)
   val string =
@@ -56,3 +66,4 @@ object Msgs extends App {
   val a = string.parseJson.convertTo[InputMsg]
   println(a.toJson.prettyPrint)
 }
+

@@ -51,6 +51,15 @@ trait ClusterService extends WebService {
           }
         }
       }
+    } ~ pathPrefix("ignore") {
+      post {
+        formField('msg.as[String]) {
+          msg => {
+            complete(IgnoreService.service(msg))
+          }
+        }
+      }
     }
   }
 }
+
