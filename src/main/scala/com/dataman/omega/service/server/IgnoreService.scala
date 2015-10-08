@@ -54,7 +54,7 @@ object IgnoreService {
     deleteIgnoresTable(msgbean.appid)
     insertIgnoresTable(msgbean.appid, msgbean.terms.get.split(","))
 
-    val oum = IgnoreAck(msgbean.appid, Option("0"))
+    val oum = IgnoreAck(msgbean.appid, Option("1"))
     Base64Util.encodeUTF8String(oum.toJson.toString())
   }
 
