@@ -24,32 +24,41 @@ object Stage1st {
 
 
     val hdfs = "10.3.12.9:9000"
-    val input = s"hdfs://$hdfs/" + args(0)
-
+//    val input = s"hdfs://$hdfs/" + args(0)
+//
     val baseURL = "http://10.3.12.2:8666/analyzer"
-    val r1 = sc.textFile(input).map(_.replaceAll("""\\n""", ""))
-      .repartition(10)
-      .mapPartitions(iter => {
-      val props = new Properties
-      props.setProperty("sighanCorporaDict", baseURL)
-      props.setProperty("serDictionary", s"$baseURL/dict-chris6.ser.gz")
-      props.setProperty("inputEncoding", "UTF-8")
-      props.setProperty("sighanPostProcessing", "true")
-      val segmenter = new CRFClassifier[CoreLabel](props)
-      val url = s"$baseURL/ctb.gz"
-      val is = new URL(url).openStream
-      val inputStream = new GZIPInputStream(new BufferedInputStream(is))
-      segmenter.loadClassifierNoExceptions(inputStream, props)
-      inputStream.close
-      is.close
-      iter.map( record => {
-        if (record.length > 0) {
-          segmenter.segmentString(record).toArray.mkString(" ")
-        } else ""
-      })
-    })
+//    val r1 = sc.textFile(input).map(_.replaceAll("""\\n""", ""))
+//      .repartition(10)
+//      .mapPartitions(iter => {
+//      val props = new Properties
+//      props.setProperty("sighanCorporaDict", baseURL)
+//      props.setProperty("serDictionary", s"$baseURL/dict-chris6.ser.gz")
+//      props.setProperty("inputEncoding", "UTF-8")
+//      props.setProperty("sighanPostProcessing", "true")
+//      val segmenter = new CRFClassifier[CoreLabel](props)
+//      val url = s"$baseURL/ctb.gz"
+//      val is = new URL(url).openStream
+//      val inputStream = new GZIPInputStream(new BufferedInputStream(is))
+//      segmenter.loadClassifierNoExceptions(inputStream, props)
+//      inputStream.close
+//      is.close
+//      iter.map( record => {
+//        if (record.length > 0) {
+//          segmenter.segmentString(record).toArray.mkString(" ")
+//        } else ""
+//      })
+//    })
+    val dbhost = "10.3.12.10"
+    val db = "ldadb"
+    val user = "ldadev"
+    val pw = "ldadev1234"
+    val table = "ibloomberg_content"
 
-    val r2 = sqlContext.jdbc("jdbc:mysql://10.3.12.11:3306/lda?user=root&password=1234567890", "article_20").select("content")
+    val r2 = sqlContext.read.format("jdbc").options(
+      Map("url" -> s"jdbc:mysql://${dbhost}:3306/${db}?user=${user}&password=${pw}",
+        "dbtable" -> table,
+        "driver" -> "com.mysql.jdbc.Driver")).load()
+    //val r2 = sqlContext.jdbc(s"jdbc:mysql://${dbhost}:3306/${db}?user=${user}&password=${pw}", table).select("content")
       .repartition(10)
       .mapPartitions(iter => {
       val props = new Properties
@@ -65,15 +74,16 @@ object Stage1st {
       inputStream.close
       is.close
       iter.map( record => {
-        if (record.length > 0 && record(0) != null) {
+        if (record.length > 0 && record != null) {
           val m = """\\r\\n|\\r|\\n|\\"""
-          val text = Jsoup.parse(record(0).toString.replaceAll(m, "")).text()
+          //val text = Jsoup.parse(record(0).toString.replaceAll(m, "")).text()
+          val text = record.toString.replaceAll(m, "")
           segmenter.segmentString(text).toArray.mkString(" ")
         } else ""
       })
     })
 
-    clearData(r1 ++ r2).repartition(5).saveAsTextFile(s"hdfs://$hdfs/users/root/lda/tmp")
+    clearData(r2).repartition(5).saveAsTextFile(s"hdfs://$hdfs/users/root/lda/documents/$table")
 
     def clearData(rdd: RDD[String]): RDD[String] = {
       rdd.map( line => {
