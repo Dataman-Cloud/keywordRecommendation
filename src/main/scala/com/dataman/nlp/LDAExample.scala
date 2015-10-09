@@ -166,7 +166,7 @@ object LDAExample {
 
     if (ldaModel.isInstanceOf[DistributedLDAModel]) {
       val distLDAModel = ldaModel.asInstanceOf[DistributedLDAModel]
-      if (!params.debug) distLDAModel.save(sc,"hdfs://10.3.12.9:9000/model/two")
+      if (!params.debug) distLDAModel.save(sc,"hdfs://10.3.12.9:9000/model/ibloomberg_content/one")
       val avgLogLikelihood = distLDAModel.logLikelihood / actualCorpusSize.toDouble
       println(s"\t Training data average log likelihood: $avgLogLikelihood")
       println()
@@ -195,7 +195,7 @@ object LDAExample {
           case (term, weight) => s"$term:$weight"
         }.mkString("\t")
     }
-    if(!params.debug) sc.parallelize(result, 1).saveAsTextFile("hdfs://10.3.12.9:9000/users/root/lda/topicResult")
+    if(!params.debug) sc.parallelize(result, 1).saveAsTextFile("hdfs://10.3.12.9:9000/users/root/lda/ibloomberg_content/topicResult")
 
     sc.stop()
   }
@@ -245,7 +245,7 @@ object LDAExample {
       (tmpSortedWC.map(_._1).zipWithIndex.toMap, tmpSortedWC.map(_._2).sum)  //（（单词，index），取出的单词总数）
     }
 
-    if (!debug) sc.parallelize(vocab.toArray.toList).saveAsTextFile("hdfs://10.3.12.9:9000/users/root/lda/vocab2")
+    if (!debug) sc.parallelize(vocab.toArray.toList).saveAsTextFile("hdfs://10.3.12.9:9000/users/root/lda/ibloomberg_content/vocab")
 
     val documents = tokenized.map { case (id, tokens) =>
       // Filter tokens by vocabulary, and create word count vector representation of document.

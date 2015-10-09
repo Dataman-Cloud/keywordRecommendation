@@ -1,7 +1,7 @@
 import AssemblyKeys._
 assemblySettings
 
-name := "omega-service"
+name := "xdcb-service"
 
 version := "1.0"
 
@@ -33,8 +33,6 @@ libraryDependencies ++= {
 
 resolvers ++= Seq(
   "Spray repository" at "http://repo.spray.io",
-  "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/",
-  "The New Motion Public Repo" at "http://nexus.thenewmotion.com/content/groups/public/",
-  "rediscala" at "https://raw.github.com/etaty/rediscala-mvn/master/releases/"  
+  "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
 )
 
