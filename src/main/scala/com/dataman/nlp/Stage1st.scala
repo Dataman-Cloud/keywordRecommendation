@@ -52,6 +52,7 @@ object Stage1st {
     val db = "ldadb"
     val user = "ldadev"
     val pw = "ldadev1234"
+//    val table = "ibloomberg_content"
     val table = "ibloomberg_content"
 
     val r2 = sqlContext.read.format("jdbc").options(
@@ -59,6 +60,7 @@ object Stage1st {
         "dbtable" -> table,
         "driver" -> "com.mysql.jdbc.Driver")).load()
     //val r2 = sqlContext.jdbc(s"jdbc:mysql://${dbhost}:3306/${db}?user=${user}&password=${pw}", table).select("content")
+      .select("content", "keywords_char")
       .repartition(10)
       .mapPartitions(iter => {
       val props = new Properties
@@ -74,12 +76,14 @@ object Stage1st {
       inputStream.close
       is.close
       iter.map( record => {
-        if (record.length > 0 && record != null) {
+        val doc = if (record(0).toString.length > 0 && record(0) != null) {
           val m = """\\r\\n|\\r|\\n|\\"""
           //val text = Jsoup.parse(record(0).toString.replaceAll(m, "")).text()
-          val text = record.toString.replaceAll(m, "")
+          val text = Jsoup.parse(record(0).toString.replaceAll(m, "")).text()
+          //val text = record.toString.replaceAll(m, "")
           segmenter.segmentString(text).toArray.mkString(" ")
         } else ""
+        doc + " " + record(1).toString
       })
     })
 
