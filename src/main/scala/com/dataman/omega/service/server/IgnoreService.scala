@@ -44,6 +44,9 @@ object IgnoreService {
   def selectTerms(appid: Int): List[String] = {
     IgnoreService.ignoreRaws.filter(_.appid === appid).list.map{x => x.term}
   }
+  def selectTerms(): List[String] = {
+    IgnoreService.ignoreRaws.list.map{x => x.term}
+  }
 
   def service(msg: String) = {
     val jsonMsg = Base64Util.decodeBase64withUTF8(msg)

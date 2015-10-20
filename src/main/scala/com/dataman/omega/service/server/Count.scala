@@ -85,8 +85,13 @@ object Count {
       rdd.flatMap(x => x).filter(x => x.size > 1 && !broadcastsw.value.contains(x))
     }
 
-    filter(clearData(rdd)).map((_, 1)).reduceByKey(_ + _).sortBy(_._2, false).take(500).map(x => {
+    val blackList = IgnoreService.selectTerms()
+
+    filter(clearData(rdd)).map((_, 1)).reduceByKey(_ + _).sortBy(_._2, false).collect.filterNot{
+      case (w, c) => blackList.contains(w)
+    }.take(500).map(x => {
       x._1 + ":" + x._2
     }).mkString(",")
+
   }
 }
