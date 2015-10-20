@@ -5,6 +5,7 @@ import com.dataman.omega.service.server.PredictArticleService
 
 object PredictActor {
   case class PredictArticleMsg(msg: String)
+  case class WordCount()
 }
 
 class PredictActor extends Actor {
