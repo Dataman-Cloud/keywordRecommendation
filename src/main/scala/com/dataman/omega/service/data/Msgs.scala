@@ -51,6 +51,14 @@ case class IgnoreAck (
   detail: Option[String]
 )
 
+case class WordCountMsg (
+  table: String
+)
+
+object WordCountMsgJsonProtocol extends DefaultJsonProtocol {
+  implicit val wordCountMsgJsonFormat = jsonFormat1(WordCountMsg)
+}
+
 object Msgs extends App {
   implicit val aJsonFormat = jsonFormat6(InputMsg)
   val string =

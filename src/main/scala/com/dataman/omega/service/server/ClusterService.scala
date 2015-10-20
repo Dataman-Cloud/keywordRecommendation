@@ -20,6 +20,7 @@ import com.dataman.omega.service.server.HTTPHelpers._
 
 trait ClusterService extends WebService {
 
+  import com.dataman.omega.service.data.WordCountMsgJsonProtocol.wordCountMsgJsonFormat
 
   val work = actorRefFactory.actorOf(Props[PredictActor], "worker")
 
@@ -58,6 +59,12 @@ trait ClusterService extends WebService {
             complete(IgnoreService.service(msg))
           }
         }
+      }
+    } ~ pathPrefix("wordcount") {
+      post {
+        entity(as[WordCountMsg]) { msg => {
+          complete(Count.count(msg))
+        }}
       }
     }
   }
