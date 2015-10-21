@@ -28,24 +28,34 @@ object IgnoreService {
     //url = "jdbc:mysql://localhost:3306/test?user=root&password=&useUnicode=true&characterEncoding=utf8",
     driver = "com.mysql.jdbc.Driver"
   )
-  implicit val session = db.createSession()
+
   val ignoreRaws = TableQuery[ignoresTable]
 
   def insertIgnoresTable(appid: Int, terms: Array[String]) = {
+    implicit val session = db.createSession()
     terms.foreach ( term => {
       val raw = Ignores(0, term, appid)
       ignoreRaws += raw
-    }
-    )
+    })
+    session.close()
   }
   def deleteIgnoresTable(appid: Int): Int = {
-    ignoreRaws.filter(_.appid === appid).delete
+    implicit val session = db.createSession()
+    val result = ignoreRaws.filter(_.appid === appid).delete
+    session.close()
+    result
   }
   def selectTerms(appid: Int): List[String] = {
-    IgnoreService.ignoreRaws.filter(_.appid === appid).list.map{x => x.term}
+    implicit val session = db.createSession()
+    val result = IgnoreService.ignoreRaws.filter(_.appid === appid).list.map{x => x.term}
+    session.close()
+    result
   }
   def selectTerms(): List[String] = {
-    IgnoreService.ignoreRaws.list.map{x => x.term}
+    implicit val session = db.createSession()
+    val result = IgnoreService.ignoreRaws.list.map{x => x.term}
+    session.close()
+    result
   }
 
   def service(msg: String) = {
@@ -82,4 +92,5 @@ deleteIgnoresTable(msgbean.appid)
     val oum = IgnoreAck(msgbean.appid, Option("0"))
   }
 }
+
 

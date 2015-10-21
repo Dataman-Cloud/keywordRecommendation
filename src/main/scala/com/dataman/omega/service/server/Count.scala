@@ -18,9 +18,9 @@ import org.jsoup.Jsoup
  * Created by fchen on 15-10-20.
  */
 object Count {
-  val sc = new SparkContext()
+//  val sc = new SparkContext()
   def count(msg: WordCountMsg): String = {
-    count(sc, msg.table)
+    count(Analyzer.sc, msg.table)
   }
   def count(sc: SparkContext, table: String): String = {
 
