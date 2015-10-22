@@ -40,6 +40,55 @@ object SaveToMysql {
       df
     }
 */
+def stringToRdd(sc:SparkContext,str:String):(RDD[(Long, Vector)])={
+  val strRdd=sc.makeRDD(str,1)
+  val stopwords: Set[String] = sc.textFile("hdfs://10.3.12.9:9000/test/stopword.dic").map(_.trim).filter(_.size > 0).distinct.collect.toSet
+  val broadcastsw = sc.broadcast(stopwords)
+  val tokenized: RDD[(Long, IndexedSeq[String])] = strRdd.zipWithIndex().map { case (text, id) =>
+    id -> text.toString.split(" ").map(_.trim).filter(x => x.size > 1 && !broadcastsw.value.contains(x))
+  }                                                     //?????????????????ID
+  tokenized.cache()
+  val wordCounts: RDD[(String, Long)] = tokenized
+    .flatMap { case (_, tokens) => tokens.map(_ -> 1L) }
+    .reduceByKey(_ + _)
+  wordCounts.cache()                                    //??????wordcount
+  val fullVocabSize = wordCounts.count()                //?????????
+  // Select vocab
+  //  (vocab: Map[word -> id], total tokens after selecting vocab)
+
+  val (vocab: Map[String, Int], selectedTokenCount: Long) = {
+    val tmpSortedWC: Array[(String, Long)] = if (10000 == -1 || fullVocabSize <= 10000) {
+      // Use all terms
+      wordCounts.collect().sortBy(-_._2)
+    } else {
+      // Sort terms to select vocab
+      wordCounts.sortBy(_._2, ascending = false).take(10000)
+    }                                                                      // ??vocabSize??????
+    (tmpSortedWC.map(_._1).zipWithIndex.toMap, tmpSortedWC.map(_._2).sum)  //?????????index??????????????????
+  }
+
+  val documents = tokenized.map { case (id, tokens) =>
+    // Filter tokens by vocabulary, and create word count vector representation of document.
+    val wc = new mutable.HashMap[Int, Int]()
+    tokens.foreach { term =>
+      if (vocab.contains(term)) {
+        val termIndex = vocab(term)
+        wc(termIndex) = wc.getOrElse(termIndex, 0) + 1
+      }
+    }
+    val indices = wc.keys.toArray.sorted
+    val values = indices.map(i => wc(i).toDouble)
+
+    val sb = Vectors.sparse(vocab.size, indices, values)
+    (id, sb)
+  }                                                                      //?????????????????vector??id??vector??
+
+  val vocabArray = new Array[String](vocab.size)
+  vocab.foreach { case (term, i) => vocabArray(i) = term }               //???????????????vocabArray(word) == index)
+
+  (documents)
+}
+
     def main(args: Array[String]) {
       val conf=new SparkConf()
       val sc =new SparkContext(conf)
@@ -85,7 +134,7 @@ object SaveToMysql {
           val artId=y(0).toString.toInt
           val text = Jsoup.parse(y(1).toString).text()
           val str=seg.segmentString(text).toArray.mkString(" ").replaceAll(s"\\r\\n","").replaceAll("\\pP|\\pS","").replaceAll("[a-zA-Z]","").replaceAll(" +"," ")
-          val docVec=ToVector.stringToRdd(sc,str)
+          val docVec=stringToRdd(sc,str)
           val localModel=LocalLDAModel.load(sc,"hdfs://10.3.12.9:9000/test/ModelMatrix/Matrix6")
           val docTopic =localModel.topicDistributions(docVec)
           val autoId=docTopic.map(_._1).toString().toInt
@@ -113,3 +162,4 @@ object SaveToMysql {
 
   }
 }
+
