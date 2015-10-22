@@ -57,14 +57,15 @@ object Count {
         inputStream.close
         is.close
         iter.map( record => {
-          val doc = if (record(0).toString.length > 0 && record(0) != null) {
+          val doc = if (record(0) != null && record(0).toString.length > 0) {
             val m = """\\r\\n|\\r|\\n|\\"""
             //val text = Jsoup.parse(record(0).toString.replaceAll(m, "")).text()
             val text = Jsoup.parse(record(0).toString.replaceAll(m, "")).text()
             //val text = record.toString.replaceAll(m, "")
             segmenter.segmentString(text).toArray.mkString(" ")
           } else ""
-        doc + (" " + record(1).toString) * keyWordWeight
+        val record_1 = if(record(1) != null && record(1).toString.length > 0) record(1).toString else ""
+        doc + (" " + record_1) * keyWordWeight
       })
     })
 

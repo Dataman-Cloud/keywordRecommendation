@@ -100,14 +100,12 @@ object knnJoin {
    * @param dataSet : RDD of Vectors of Int
    * @param dataPoint : Vector of Int
    * @param len : Number of data-points of the dataSet on which knnJoin is to be done
-   * @param randomSize : the number of iterations which has to be carried out
    *
    * @return an RDD of Vectors of Int on which simple KNN needs to be applied with respect to the data-point
    */
   def knnJoin(dataSet1 : RDD[(Vector[Double], Long)],
               dataPoint1 : Vector[Double],
               len : Int,
-              randomSize : Int,
               sc : SparkContext): RDD[(Vector[Double], Long)] = {
 
     val dataSet:RDD[(Vector[Int], Long)] = dataSet1.map(vector => {(vector._1.map(i => (i*100000).toInt), vector._2)})

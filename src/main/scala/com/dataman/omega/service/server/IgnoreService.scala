@@ -15,16 +15,27 @@ import slick.driver.MySQLDriver.simple._
  * Created by mymac on 15/9/29.
  */
 object IgnoreService {
+
+  val DB_HOST = "10.3.12.10"
+  val DB = "ldadb"
+  val DB_USER = "ldadev"
+  val DB_PASSWORD = "ldadev1234"
+  val TABLE_IGNORES = "ignores"
+  val DETAIL_SUCCESS = "1"
+  val DETAIL_FAIL = "0"
+
   case class Ignores(id: Int, term: String, appid: Int)
-  class ignoresTable(tag: Tag) extends Table[Ignores](tag, "ignores") {
+  class ignoresTable(tag: Tag) extends Table[Ignores](tag, TABLE_IGNORES) {
     def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
     def term = column[String]("term")
     def appid = column[Int]("appid")
 
     def * = (id, term, appid) <> (Ignores.tupled, Ignores.unapply)
   }
+
+
   def db = Database.forURL(
-    url = "jdbc:mysql://10.3.12.10:3306/ldadb?user=ldadev&password=ldadev1234&useUnicode=true&characterEncoding=utf8",
+    url = s"jdbc:mysql://${DB_HOST}:3306/${DB}?user=${DB_USER}&password=${DB_PASSWORD}&useUnicode=true&characterEncoding=utf8",
     //url = "jdbc:mysql://localhost:3306/test?user=root&password=&useUnicode=true&characterEncoding=utf8",
     driver = "com.mysql.jdbc.Driver"
   )
@@ -63,11 +74,10 @@ object IgnoreService {
     implicit val inputJsonFormat = jsonFormat2(IgnoreList)
     implicit val outputJsonFormat = jsonFormat2(IgnoreAck)
     val msgbean = jsonMsg.parseJson.convertTo[IgnoreList]
-    val blackList = selectTerms(msgbean.appid)
     deleteIgnoresTable(msgbean.appid)
     insertIgnoresTable(msgbean.appid, msgbean.terms.get.split(","))
 
-    val oum = IgnoreAck(msgbean.appid, Option("1"))
+    val oum = IgnoreAck(msgbean.appid, Option(DETAIL_SUCCESS))
     Base64Util.encodeUTF8String(oum.toJson.toString())
   }
 
@@ -92,5 +102,3 @@ deleteIgnoresTable(msgbean.appid)
     val oum = IgnoreAck(msgbean.appid, Option("0"))
   }
 }
-
-

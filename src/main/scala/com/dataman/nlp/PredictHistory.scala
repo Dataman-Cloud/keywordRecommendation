@@ -8,13 +8,18 @@ import org.apache.spark.{SparkContext, SparkConf}
 /**
  * Created by ckb on 2015/8/29.
  */
-object PridectHistory {
+object PredictHistory {
   def main(args: Array[String]) {
 
+    val LDA_MODEL_PATH = "hdfs://10.3.12.9:9000/model/two"
+    val TRAIN_DOCS_PARTICIPATED = "hdfs://10.3.12.9:9000/test/VectorWord/HistoryVector/HistoryWord1"
+    val STOPWORD_PATH = "hdfs://10.3.12.9:9000/test/stopword.dic"
+    val DOC_TOPIC_RDD_PATH = "hdfs://10.3.12.9:9000/test/PrWord/Word2/"
+    val VOCAB_SIZE = 100000
 
     val conf = new SparkConf()
     val sc = new SparkContext(conf)
-    val lda = LocalLDAModel.load(sc, "hdfs://10.3.12.9:9000/model/two")
+    val lda = LocalLDAModel.load(sc, LDA_MODEL_PATH)
     /*
     val input = lda.describeTopics(10).map(x => x._2).map(y => y.toVector)
     val index1 = input.zipWithIndex.map(x => {
@@ -41,11 +46,11 @@ object PridectHistory {
     })
     */
     //val list = List("hdfs://10.3.12.9:9000/test/bbc/dataone")
-    val list = List("hdfs://10.3.12.9:9000/test/VectorWord/HistoryVector/HistoryWord1")
-    val docVec = ToVector.wordToVector1(sc, list, 100000, "hdfs://10.3.12.9:9000/test/stopword.dic")
+    val list = List(TRAIN_DOCS_PARTICIPATED)
+    val docVec = ToVector.wordToVector1(sc, list, VOCAB_SIZE, STOPWORD_PATH)
     //docVec.saveAsTextFile("hdfs://10.3.12.9:9000/test/PrWord/Word9")
     val preDeV = lda.topicDistributions(docVec)
-    preDeV.repartition(1).saveAsTextFile("hdfs://10.3.12.9:9000/test/PrWord/Word2")
+    preDeV.repartition(1).saveAsTextFile(DOC_TOPIC_RDD_PATH)
       /*
       .map(x => x._2.toArray)
       .map(y => {
@@ -63,3 +68,4 @@ object PridectHistory {
 
 
 }
+
