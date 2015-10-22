@@ -65,7 +65,7 @@ object Count {
             segmenter.segmentString(text).toArray.mkString(" ")
           } else ""
         val record_1 = if(record(1) != null && record(1).toString.length > 0) record(1).toString else ""
-        doc + (" " + record_1) * keyWordWeight
+        (doc + (" " + record_1) * keyWordWeight).trim.split(" ").distinct.mkString(" ")
       })
     })
 
