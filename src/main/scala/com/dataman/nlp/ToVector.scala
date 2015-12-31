@@ -1,5 +1,7 @@
 package com.dataman.nlp
 
+import com.dataman.omega.service.utils.{Configs => C}
+
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkContext, SparkConf}
@@ -9,9 +11,10 @@ import scala.collection.mutable
  */
 object ToVector {
 
-  val STOPWORD_PATH = "hdfs://10.3.12.9:9000/test/stopword.dic"
-  val VOCAB_PATH = "hdfs://10.3.12.9:9000/users/root/lda/vocab"
-  val VOCAB_PATH2 = "hdfs://10.3.12.9:9000/users/root/lda/vocab2"
+  val STOPWORD_PATH = C.ldaStopwordPath
+  //val VOCAB_PATH = "hdfs://10.3.12.9:9000/users/root/lda/vocab"
+  val VOCAB_PATH2 = C.ldaVocabPath
+  val VOCAB_PATH = C.ldaVocabPath
 
   def wordToVector(sc: SparkContext,
                    paths: Seq[String],

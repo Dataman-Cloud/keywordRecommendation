@@ -1,5 +1,7 @@
 package com.dataman.nlp
 
+import com.dataman.omega.service.utils.{Configs => C}
+
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkContext, SparkConf}
 import org.apache.spark.sql.SQLContext
@@ -8,7 +10,8 @@ import org.apache.spark.sql.SQLContext
  */
 object TopicHot {
   def getArticle(sc: SparkContext, sqlContext: SQLContext, appId: Int):String = {
-    val artRdd = sc.textFile("hdfs://10.3.12.9:9000/test/PrWord/Word2/")
+    val ldaDocTopicPath = C.ldaDocTopicPath
+    val artRdd = sc.textFile(ldaDocTopicPath)
     val inputRdd = artRdd.map(x=>{x.replaceAll(s"\\]|\\)","").split("\\[")
     }).map(y => {
       val vec = (y(1).split(",").map(_.toDouble)).toVector
@@ -26,7 +29,7 @@ object TopicHot {
 
     val sqlword = sqlContext.read.format("jdbc").options(
       Map(
-        "url" -> "jdbc:mysql://10.3.12.10:3306/ldadb?user=ldadev&password=ldadev1234",
+        "url" -> s"jdbc:mysql://${C.mHost}:${C.mPort.toString}/${C.mDB}?user=${C.mUser}&password=${C.mPasswd}",
         "dbtable" -> "topics_10word",
         "driver"->"com.mysql.jdbc.Driver"
       )).load().repartition(10)

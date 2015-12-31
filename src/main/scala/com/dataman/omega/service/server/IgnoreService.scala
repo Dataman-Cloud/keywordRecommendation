@@ -2,6 +2,7 @@ package com.dataman.omega.service.server
 
 import com.dataman.nlp.TopicHot
 import com.dataman.omega.service.data._
+import com.dataman.omega.service.utils.{Configs => C}
 import com.dataman.webservice.{Analyzer, Base64Util}
 import spray.json.DefaultJsonProtocol._
 import spray.json._
@@ -16,10 +17,10 @@ import slick.driver.MySQLDriver.simple._
  */
 object IgnoreService {
 
-  val DB_HOST = "10.3.12.10"
-  val DB = "ldadb"
-  val DB_USER = "ldadev"
-  val DB_PASSWORD = "ldadev1234"
+  val DB_HOST = C.mHost
+  val DB = C.mDB
+  val DB_USER = C.mUser
+  val DB_PASSWORD = C.mPasswd
   val TABLE_IGNORES = "ignores"
   val DETAIL_SUCCESS = "1"
   val DETAIL_FAIL = "0"

@@ -7,6 +7,7 @@ import java.util.zip.GZIPInputStream
 
 import com.dataman.omega.service.data.WordCountMsg
 import com.dataman.webservice.Analyzer
+import com.dataman.omega.service.utils.{Configs => C}
 import edu.stanford.nlp.ie.crf.CRFClassifier
 import edu.stanford.nlp.ling.CoreLabel
 import org.apache.spark.SparkContext
@@ -29,10 +30,10 @@ object Count {
     val STOPWORD_PATH = s"hdfs://$HDFS_HOST/test/stopword.dic"
 
     val ANALYZER_URL = "http://10.3.12.2:8666/analyzer"
-    val DB_HOST = "10.3.12.10"
-    val DB = "ldadb"
-    val USER = "ldadev"
-    val PASSWORD = "ldadev1234"
+    val DB_HOST = C.mHost
+    val DB = C.mDB
+    val USER = C.mUser
+    val PASSWORD = C.mPasswd
     val ROW1 = "content"
     val ROW2 = "keywords_char"
     val keyWordWeight = 10

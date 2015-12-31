@@ -1,6 +1,7 @@
 package com.dataman.omega.service.data
 
 import slick.driver.MySQLDriver.simple._
+import com.dataman.omega.service.utils.{Configs => C}
 /**
  * Created by mymac on 15/9/25.
  */
@@ -21,7 +22,7 @@ object Mysql {
 
     def createTable() = {
       def db = Database.forURL(
-        url = "jdbc:mysql://10.3.12.10:3306/ldadb?user=ldadev&password=ldadev1234&useUnicode=true&characterEncoding=utf8",
+        url = s"jdbc:mysql://${C.mHost}:${C.mPort.toString}/${C.mDB}?user=${C.mUser}&password=${C.mPasswd}&useUnicode=true&characterEncoding=utf8",
         driver = "com.mysql.jdbc.Driver"
       )
       implicit val session = db.createSession()
@@ -31,7 +32,7 @@ object Mysql {
 
     def insertMessage(msg: InputMsg) = {
       def db = Database.forURL(
-        url = "jdbc:mysql://10.3.12.10:3306/ldadb?user=ldadev&password=ldadev1234&useUnicode=true&characterEncoding=utf8",
+        url = s"jdbc:mysql://${C.mHost}:${C.mPort.toString}/${C.mDB}?user=${C.mUser}&password=${C.mPasswd}&useUnicode=true&characterEncoding=utf8",
         driver = "com.mysql.jdbc.Driver"
       )
       implicit val session = db.createSession()
