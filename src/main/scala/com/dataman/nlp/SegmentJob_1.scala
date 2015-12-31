@@ -1,5 +1,7 @@
 package com.dataman.nlp
 
+import com.dataman.omega.service.utils.{Configs => C}
+
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.SparkContext._
@@ -23,11 +25,10 @@ object SegmentJob_1 {
 
   def main(args: Array[String]) = {
 
-    val input = "hdfs://10.3.12.9:9000/test/"
     val conf = new SparkConf()
     val sc = new SparkContext(conf)
     val sqlContext = new SQLContext(sc)
-    val baseURL="http://10.3.12.2:8666/analyzer" //the service shenkai provide
+    val baseURL= C.analyzerURL //the service shenkai provide
     //too slow
     /*
     val url="jdbc:mysql://10.3.12.10:3306/ldadb"
@@ -42,8 +43,8 @@ object SegmentJob_1 {
     */
     sqlContext.read.format("jdbc").options(
       Map(
-        "url" -> "jdbc:mysql://10.3.12.10:3306/ldadb?user=ldadev&password=ldadev1234",
-        "dbtable" -> "article_20",
+        "url" -> s"jdbc:mysql://${C.mHost}:${C.mPort.toString}/${C.mDB}?user=${C.mUser}&password=${C.mPasswd}",
+        "dbtable" -> s"${C.predictMysqlTableName}",
         "driver"->"com.mysql.jdbc.Driver"
       )).load()
       .repartition(10).select("articleid","content").filter("content is not null")
@@ -69,6 +70,6 @@ object SegmentJob_1 {
           segmenter.segmentString(text).toArray.mkString(" ").replaceAll(s"\\r\\n","").replaceAll("\\pP|\\pS","").replaceAll("[a-zA-Z]","").replaceAll(" +"," ")
         } else "" )
       }).map(y=>y._1+","+y._2)
-    }).saveAsTextFile(args(0))
+    }).saveAsTextFile(C.ldaTrainDocsParticipated)
   }
 }

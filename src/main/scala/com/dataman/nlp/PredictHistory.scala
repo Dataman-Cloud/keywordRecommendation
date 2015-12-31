@@ -1,6 +1,7 @@
 package com.dataman.nlp
 
 import com.dataman.nlp.knn.knnJoin
+import com.dataman.omega.service.utils.{Configs => C}
 import org.apache.spark.mllib.clustering.LocalLDAModel
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkContext, SparkConf}
@@ -11,10 +12,10 @@ import org.apache.spark.{SparkContext, SparkConf}
 object PredictHistory {
   def main(args: Array[String]) {
 
-    val LDA_MODEL_PATH = "hdfs://10.3.12.9:9000/model/two"
-    val TRAIN_DOCS_PARTICIPATED = "hdfs://10.3.12.9:9000/test/VectorWord/HistoryVector/HistoryWord1"
-    val STOPWORD_PATH = "hdfs://10.3.12.9:9000/test/stopword.dic"
-    val DOC_TOPIC_RDD_PATH = "hdfs://10.3.12.9:9000/test/PrWord/Word2/"
+    val LDA_MODEL_PATH = C.ldaModelURI
+    val TRAIN_DOCS_PARTICIPATED = C.ldaTrainDocsParticipated
+    val STOPWORD_PATH = C.ldaStopwordPath
+    val DOC_TOPIC_RDD_PATH = C.ldaDocTopicPath
     val VOCAB_SIZE = 100000
 
     val conf = new SparkConf()

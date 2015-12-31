@@ -4,6 +4,7 @@ import com.dataman.nlp.knn.knnJoin
 import com.dataman.nlp.util.{Mysql, StanfordSegment}
 import com.dataman.nlp.knn.knnJoin
 import com.dataman.omega.service.server.IgnoreService
+import com.dataman.omega.service.utils.{Configs => C}
 import org.apache.spark.mllib.clustering.LocalLDAModel
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkContext, SparkConf}
@@ -28,12 +29,12 @@ object predictArticle {
                  content:String,
                  analyzer:CRFClassifier[CoreLabel]):(String, String)={
 
-    val DOC_TOPIC_RDD_PATH = "hdfs://10.3.12.9:9000/test/PrWord/Word2/"
-    val STOPWORD_PATH = "hdfs://10.3.12.9:9000/test/stopword.dic"
-    val DB_HOST = "10.3.12.10"
-    val DB = "ldadb"
-    val USER = "ldadev"
-    val PASSWORD = "ldadev1234"
+    val DOC_TOPIC_RDD_PATH = C.ldaDocTopicPath
+    val STOPWORD_PATH = C.ldaStopwordPath
+    val DB_HOST = C.mHost
+    val DB = C.mDB
+    val USER = C.mUser
+    val PASSWORD = C.mPasswd
     val VOCAB_SIZE = 100000
     val TERM_NUM_PER_TOPIC = 10
     val TABLE_TOPIC_TERM = s"topics${TERM_NUM_PER_TOPIC.toString}"

@@ -1,5 +1,7 @@
 package com.dataman.nlp.util
 
+import com.dataman.omega.service.utils.{Configs => C}
+
 import java.sql.{Connection, DriverManager, ResultSet, SQLException,PreparedStatement}
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
@@ -9,7 +11,7 @@ import org.apache.spark.rdd.RDD
 object Mysql {
   def insert(query: String) {
     // Change to Your Database Config
-    val conn_str = "jdbc:mysql://10.3.12.10:3306/ldadb?user=ldadev&password=ldadev1234&useUnicode=true&characterEncoding=utf8"
+    val conn_str = s"jdbc:mysql://${C.mHost}:${C.mPort.toString}/${C.mDB}?user=${C.mUser}&password=${C.mPasswd}&useUnicode=true&characterEncoding=utf8"
     // Load the driver
     //    classOf[com.mysql.jdbc.Driver]
     // Setup the connection
@@ -81,7 +83,7 @@ object Mysql {
   }
 
   def sqlTo_topics_5word(result: RDD[(String,Int)]): RDD[String]={
-    val table ="topics_5word"
+    val table = C.predictTopic5WordTableName
     val value = result.map(x => {
       s"INSERT INTO $table (id, terms) VALUES " + "(" + x._2 + ",'" + x._1 + "')"
     })
@@ -128,7 +130,7 @@ object Mysql {
   }
 */
   def batchProcessing(query: RDD[String]) {
-    val conn_str = "jdbc:mysql://10.3.12.10:3306/ldadb?user=ldadev&password=ldadev1234&useUnicode=true&characterEncoding=utf8"
+    val conn_str = s"jdbc:mysql://${C.mHost}:${C.mPort.toString}/${C.mDB}?user=${C.mUser}&password=${C.mPasswd}&useUnicode=true&characterEncoding=utf8"
     query.foreachPartition(item => {
       val conn = DriverManager.getConnection(conn_str)
       val statement = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)
