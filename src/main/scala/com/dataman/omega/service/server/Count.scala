@@ -26,11 +26,11 @@ object Count {
   def count(sc: SparkContext, table: String): String = {
 
     val sqlContext = new SQLContext(sc)
-    val HDFS_HOST = "10.3.12.9:9000"
-    val STOPWORD_PATH = s"hdfs://$HDFS_HOST/test/stopword.dic"
+    val STOPWORD_PATH = C.ldaStopwordPath
 
-    val ANALYZER_URL = "http://10.3.12.2:8666/analyzer"
+    val ANALYZER_URL = C.analyzerURL
     val DB_HOST = C.mHost
+    val DB_PORT = C.mPort
     val DB = C.mDB
     val USER = C.mUser
     val PASSWORD = C.mPasswd
@@ -39,7 +39,7 @@ object Count {
     val keyWordWeight = 10
 
     val rdd = sqlContext.read.format("jdbc").options(
-      Map("url" -> s"jdbc:mysql://${DB_HOST}:3306/${DB}?user=${USER}&password=${PASSWORD}",
+      Map("url" -> s"jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB}?user=${USER}&password=${PASSWORD}",
         "dbtable" -> table,
         "driver" -> "com.mysql.jdbc.Driver")).load()
       .select(ROW1, ROW2)
