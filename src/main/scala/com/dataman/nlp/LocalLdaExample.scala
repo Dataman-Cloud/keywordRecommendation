@@ -32,7 +32,7 @@ object LocalLdaExample {
                              docConcentration: Vector = Vectors.dense(-1) ,
                              topicConcentration: Double = -1,
                              vocabSize: Int = 100000,
-                             stopwordFile: String = "",
+                             stopwordFile: String = C.ldaStopwordPath,
                              algorithm: String = "em",
                              checkpointDir: Option[String] = None,
                              checkpointInterval: Int = 10) extends AbstractParams[Params]
